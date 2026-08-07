@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Cyberpunk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+
+        body {
+            min-height: 100vh; display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(rgba(5, 5, 5, 0.75), rgba(5, 5, 5, 0.75)), 
+                        url('assets/background.jpg') no-repeat center center fixed;
+            background-size: cover; color: #ffffff; padding: 20px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 24px; padding: 40px 30px;
+            width: 100%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 { font-size: 2rem; font-weight: 700; margin-bottom: 5px; color: #00f2fe; text-shadow: 0 0 10px rgba(0, 242, 254, 0.5); }
+        .subtitle { font-size: 0.95rem; color: #d1d8e0; margin-bottom: 25px; }
+
+        #status {
+            font-size: 1.1rem; font-weight: 600; margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 12px; display: none;
+        }
+
+        .board {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin-bottom: 25px; display: none;
+        }
+
+        .cell {
+            aspect-ratio: 1; background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; display: flex; justify-content: center; align-items: center;
+            font-size: 3.5rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;
+        }
+        .cell:hover { background: rgba(0, 242, 254, 0.2); border-color: #00f2fe; }
+
+        .btn-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .btn {
+            padding: 12px 20px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;
+        }
+        .btn-start { background: linear-gradient(45deg, #11998e, #38ef7d); color: white; box-shadow: 0 5px 15px rgba(56, 239, 125, 0.3); }
+        .btn-restart { background: linear-gradient(45deg, #ff9966, #ff5e62); color: white; display: none; box-shadow: 0 5px 15px rgba(255, 94, 98, 0.3); }
+        .btn-exit { background: rgba(255, 255, 255, 0.1); color: #d1d8e0; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        .music-btn {
+            position: fixed; bottom: 25px; right: 25px; width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(0, 242, 254, 0.5);
+            color: #00f2fe; font-size: 1.2rem; cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); transition: all 0.3s ease;
+        }
+        .music-btn:hover { transform: scale(1.1); background: #00f2fe; color: #050505; }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h1><i class="fas fa-times"></i> Tic Tac Toe <i class="far fa-circle"></i></h1>
+        <p class="subtitle">Kamu (X) vs Lawan Pintar (O)</p>
+
+        <div id="status">Giliran: Kamu (X)</div>
+        <div class="board" id="board"></div>
+
+        <div class="btn-container">
+            <button class="btn btn-start" id="startBtn" onclick="startGame()"><i class="fas fa-play"></i> Mulai Game</button>
+            <button class="btn btn-restart" id="restartBtn" onclick="startGame()"><i class="fas fa-redo"></i> Main Lagi</button>
+            <a href="index.html" class="btn btn-exit"><i class="fas fa-sign-out-alt"></i> Keluar ke Portal</a>
+        </div>
+    </div>
+
+    <button id="musicToggleBtn" class="music-btn" title="Nyalakan/Matikan Musik"><i class="fas fa-volume-mute" id="musicIcon"></i></button>
+    <audio id="bgMusic" loop><source src="assets/game-over.mp3" type="audio/mpeg"></audio>
+    <audio id="clickSound"><source src="assets/click.mp3" type="audio/mpeg"></audio>
+
+    <script>
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let isGameActive = false;
+        let isPlayerTurn = true; 
+
+        for (let i = 0; i < 9; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.addEventListener('click', () => handlePlayerClick(i, cell));
+            boardElement.appendChild(cell);
+        }
+
+        function startGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            isGameActive = true;
+            isPlayerTurn = true;
+            boardElement.style.display = "grid";
+            statusElement.style.display = "block";
+            startBtn.style.display = "none";
+            restartBtn.style.display = "none";
+            statusElement.innerText = 'Giliran: Kamu (X)';
+            statusElement.style.color = '#00f2fe';
+            Array.from(boardElement.children).forEach(cell => {
+                cell.innerText = '';
+                cell.style.pointerEvents = 'auto';
+            });
+        }
+
+        function handlePlayerClick(index, cell) {
+            if (board[index] !== '' || !isGameActive || !isPlayerTurn) return;
+            board[index] = 'X';
+            cell.innerText = 'X';
+            cell.style.color = '#00f2fe';
+            checkWinner();
+            if (isGameActive) {
+                isPlayerTurn = false;
+                statusElement.innerText = 'Lawan (O) sedang berpikir...';
+                statusElement.style.color = '#ff9966';
+                setTimeout(lawanMove, 600);
+            }
+        }
+
+        function lawanMove() {
+            if (!isGameActive) return;
+            let move = findBestMove('O');
+            if (move === -1) move = findBestMove('X');
+            if (move === -1 && board[4] === '') move = 4;
+            if (move === -1) {
+                let emptyCells = [];
+                for (let i = 0; i < 9; i++) if (board[i] === '') emptyCells.push(i);
+                if (emptyCells.length > 0) move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+            if (move !== -1) {
+                board[move] = 'O';
+                let cell = boardElement.children[move];
+                cell.innerText = 'O';
+                cell.style.color = '#ff5e62';
+                checkWinner();
+                if (isGameActive) {
+                    isPlayerTurn = true;
+                    statusElement.innerText = 'Giliran: Kamu (X)';
+                    statusElement.style.color = '#00f2fe';
+                }
+            }
+        }
+
+        function findBestMove(player) {
+            const winConditions = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]];
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (board[a] === player && board[b] === player && board[c] === '') return c;
+                if (board[a] === player && board[c] === player && board[b] === '') return b;
+                if (board[b] === player && board[c] === player && board[a] === '') return a;
+            }
+            return -1; 
+        }
+
+        function checkWinner() {
+            const winConditions = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8], [2,4,6]];
+            let roundWon = false;
+            let winner = '';
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    roundWon = true; winner = board[a]; break;
+                }
+            }
+            if (roundWon) {
+                if (winner === 'X') {
+                    statusElement.innerHTML = '🎉 Kamu Menang!';
+                    statusElement.style.color = '#38ef7d';
+                } else {
+                    statusElement.innerHTML = '💀 Kamu Kalah! Gitu aja nggak bisa...';
+                    statusElement.style.color = '#ff5e62';
+                }
+                endGame();
+                return;
+            }
+            if (!board.includes('')) {
+                statusElement.innerHTML = '🤝 Permainan Seri!';
+                statusElement.style.color = '#f1c40f';
+                endGame();
+                return;
+            }
+        }
+
+        function endGame() {
+            isGameActive = false;
+            restartBtn.style.display = "flex";
+            Array.from(boardElement.children).forEach(cell => cell.style.pointerEvents = 'none');
+        }
+
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        const musicIcon = document.getElementById('musicIcon');
+        const clickSound = document.getElementById('clickSound');
+        let isPlaying = false;
+        if (bgMusic) bgMusic.volume = 0.3;
+
+        if (musicToggleBtn) {
+            musicToggleBtn.addEventListener('click', () => {
+                if (isPlaying) { bgMusic.pause(); musicIcon.className = 'fas fa-volume-mute'; isPlaying = false; }
+                else { bgMusic.play(); musicIcon.className = 'fas fa-volume-up'; isPlaying = true; }
+            });
+        }
+
+        document.body.addEventListener('click', () => {
+            if (!isPlaying && bgMusic) {
+                bgMusic.play().then(() => { isPlaying = true; if (musicIcon) musicIcon.className = 'fas fa-volume-up'; }).catch(e => {});
+            }
+        }, { once: true });
+
+        document.querySelectorAll('button, a.game-card').forEach(element => {
+            element.addEventListener('click', () => {
+                if (clickSound) { clickSound.currentTime = 0; clickSound.play().catch(e => {}); }
+            });
+        });
+    </script>
+</body>
+</html>

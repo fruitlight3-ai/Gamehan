@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Matrix</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        
+        /* Background otomatis menggunakan background.jpg dari folder assets */
+        body {
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            background: linear-gradient(rgba(5, 5, 5, 0.75), rgba(5, 5, 5, 0.75)), 
+                        url('assets/background.jpg') no-repeat center center fixed;
+            background-size: cover; 
+            color: #ffffff; 
+            padding: 20px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 24px; padding: 30px;
+            width: 100%; max-width: 500px; text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 { font-size: 2rem; font-weight: 700; margin-bottom: 5px; color: #b538ef; text-shadow: 0 0 10px rgba(181, 56, 239, 0.5); }
+        .subtitle { font-size: 0.95rem; color: #d1d8e0; margin-bottom: 20px; }
+
+        .memory-board {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            margin-bottom: 20px; display: none; perspective: 1000px;
+        }
+
+        .card {
+            aspect-ratio: 1; cursor: pointer; position: relative;
+            transform-style: preserve-3d; transition: transform 0.5s;
+        }
+        .card.flip { transform: rotateY(180deg); pointer-events: none; }
+        
+        .card-front, .card-back {
+            position: absolute; width: 100%; height: 100%; border-radius: 12px;
+            backface-visibility: hidden; display: flex; justify-content: center; align-items: center;
+            font-size: 2.5rem; border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-front { background: rgba(0, 0, 0, 0.4); }
+        .card-front:hover { border-color: #b538ef; background: rgba(181, 56, 239, 0.2); }
+        .card-back { background: #b538ef; color: white; transform: rotateY(180deg); box-shadow: 0 0 15px rgba(181, 56, 239, 0.5); }
+
+        .btn-container { display: flex; flex-direction: column; gap: 12px; }
+        .btn { padding: 12px 20px; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+        .btn-start { background: linear-gradient(45deg, #11998e, #38ef7d); color: white; box-shadow: 0 5px 15px rgba(56, 239, 125, 0.3); }
+        .btn-restart { background: linear-gradient(45deg, #ff9966, #ff5e62); color: white; display: none; box-shadow: 0 5px 15px rgba(255, 94, 98, 0.3); }
+        .btn-exit { background: rgba(255, 255, 255, 0.1); color: #d1d8e0; border: 1px solid rgba(255, 255, 255, 0.2); }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        /* Desain Tombol Kontrol Musik Melayang di Pojok Kanan Bawah */
+        .music-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 242, 254, 0.5);
+            color: #00f2fe;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.1);
+            background: #00f2fe;
+            color: #050505;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h1><i class="fas fa-brain"></i> Memory Matrix</h1>
+        <p class="subtitle" id="subtitle">Cocokkan semua pasangan ikon neon!</p>
+        
+        <div class="memory-board" id="board"></div>
+
+        <div class="btn-container">
+            <button class="btn btn-start" id="startBtn" onclick="startGame()"><i class="fas fa-play"></i> Mulai Game</button>
+            <button class="btn btn-restart" id="restartBtn" onclick="startGame()"><i class="fas fa-redo"></i> Main Lagi</button>
+            <a href="index.html" class="btn btn-exit"><i class="fas fa-sign-out-alt"></i> Keluar ke Portal</a>
+        </div>
+    </div>
+
+    <button id="musicToggleBtn" class="music-btn" title="Nyalakan/Matikan Musik">
+        <i class="fas fa-volume-mute" id="musicIcon"></i>
+    </button>
+
+    <audio id="bgMusic" loop>
+        <source src="assets/game-over.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="clickSound">
+        <source src="assets/click.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const board = document.getElementById('board');
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const subtitle = document.getElementById('subtitle');
+        
+        const icons = ['🎮','👾','🤖','🛸','🚀','💎','🎲','🎯'];
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+
+        function startGame() {
+            startBtn.style.display = "none";
+            restartBtn.style.display = "none";
+            subtitle.innerText = "Temukan pasangannya!";
+            board.style.display = "grid";
+            board.innerHTML = '';
+            matchedPairs = 0;
+            flippedCards = [];
+
+            cards = [...icons, ...icons].sort(() => Math.random() - 0.5);
+
+            cards.forEach((icon, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.icon = icon;
+                
+                card.innerHTML = `
+                    <div class="card-front"><i class="fas fa-question text-muted" style="font-size: 1.5rem; opacity: 0.3;"></i></div>
+                    <div class="card-back">${icon}</div>
+                `;
+                
+                card.addEventListener('click', () => flipCard(card));
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard(card) {
+            if (flippedCards.length < 2 && !card.classList.contains('flip')) {
+                card.classList.add('flip');
+                flippedCards.push(card);
+
+                if (flippedCards.length === 2) {
+                    setTimeout(checkMatch, 800);
+                }
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            if (card1.dataset.icon === card2.dataset.icon) {
+                matchedPairs++;
+                if (matchedPairs === icons.length) {
+                    subtitle.innerHTML = "🎉 Luar biasa! Daya ingatmu setajam AI.";
+                    subtitle.style.color = "#38ef7d";
+                    restartBtn.style.display = "flex";
+                }
+            } else {
+                card1.classList.remove('flip');
+                card2.classList.remove('flip');
+            }
+            flippedCards = [];
+        }
+
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggleBtn = document.getElementById('musicToggleBtn');
+        const musicIcon = document.getElementById('musicIcon');
+        const clickSound = document.getElementById('clickSound');
+
+        let isPlaying = false;
+        if (bgMusic) bgMusic.volume = 0.3;
+
+        if (musicToggleBtn) {
+            musicToggleBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    bgMusic.pause();
+                    musicIcon.className = 'fas fa-volume-mute';
+                    isPlaying = false;
+                } else {
+                    bgMusic.play();
+                    musicIcon.className = 'fas fa-volume-up';
+                    isPlaying = true;
+                }
+            });
+        }
+
+        document.body.addEventListener('click', () => {
+            if (!isPlaying && bgMusic) {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    if (musicIcon) musicIcon.className = 'fas fa-volume-up';
+                }).catch(err => {
+                    console.log("Autoplay diblokir browser.");
+                });
+            }
+        }, { once: true });
+
+        document.querySelectorAll('button, a.game-card').forEach(element => {
+            element.addEventListener('click', () => {
+                if (clickSound) {
+                    clickSound.currentTime = 0;
+                    clickSound.play().catch(e => {});
+                }
+            });
+        });
+    </script>
+</body>
+</html>

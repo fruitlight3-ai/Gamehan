@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade Nexus - Portal Web Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Reset Dasar & Tema Cyberpunk */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            /* Background gambar dengan lapisan gelap transparan agar teks mudah dibaca */
+            background: linear-gradient(rgba(10, 10, 15, 0.85), rgba(10, 10, 15, 0.85)), 
+                        url('assets/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Bagian Navigasi / Header Logo */
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.8));
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #00f2fe;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        .welcome-msg {
+            font-size: 0.95rem;
+            color: #a0aec0;
+        }
+
+        /* Judul Utama */
+        .hero-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hero-title h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .hero-title p {
+            color: #a0aec0;
+            font-size: 1.1rem;
+        }
+
+        /* Grid Kartu Game */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 50px;
+        }
+
+        .game-card {
+            background: rgba(20, 20, 30, 0.7);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            border-color: #00f2fe;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+            background: rgba(25, 25, 40, 0.85);
+        }
+
+        .game-icon {
+            font-size: 3rem;
+            color: #00f2fe;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        .game-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .game-desc {
+            font-size: 0.9rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .play-btn {
+            background: transparent;
+            border: 2px solid #00f2fe;
+            color: #00f2fe;
+            padding: 10px 0;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .game-card:hover .play-btn {
+            background: #00f2fe;
+            color: #0b0b10;
+            box-shadow: 0 0 15px #00f2fe;
+        }
+
+        /* Tombol Musik Melayang di Pojok Kanan Bawah */
+        .music-btn {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid #00f2fe;
+            color: #00f2fe;
+            font-size: 1.3rem;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            transform: scale(1.1);
+            background: #00f2fe;
+            color: #0b0b10;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            text-align: center;
+            color: #718096;
+            font-size: 0.9rem;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="assets/logo-web.png" alt="Logo Web" class="logo-img">
+            <span class="logo-text">ARCADE NEXUS</span>
+        </div>
+        <div class="welcome-msg">
+            <i class="fas fa-moon"></i> Selamat Datang, Gamer!
+        </div>
+    </header>
+
+    <div class="hero-title">
+        <h1>Pusat Portal Game Seru</h1>
+        <p>Pilih game tantangan favoritmu di bawah ini dan mulai petualanganmu!</p>
+    </div>
+
+    <div class="game-grid">
+        <a href="tebak-angka.html" class="game-card">
+            <i class="fas fa-dice game-icon"></i>
+            <div class="game-title">Tebak Angka</div>
+            <div class="game-desc">Uji instingmu dengan menebak angka rahasia sebelum kesempatanmu habis!</div>
+            <button class="play-btn">Mainkan</button>
+        </a>
+
+        <a href="snake.html" class="game-card">
+            <i class="fas fa-ghost game-icon"></i>
+            <div class="game-title">Snake Cyber</div>
+            <div class="game-desc">Beri makan ularmu, kumpulkan skor tinggi, dan jangan sampai menabrak dinding.</div>
+            <button class="play-btn">Mainkan</button>
+        </a>
+
+        <a href="tictactoe.html" class="game-card">
+            <i class="fas fa-th game-icon"></i>
+            <div class="game-title">Tic Tac Toe</div>
+            <div class="game-desc">Tantang strategi silang dan bulat dalam duel klasik melawan sistem.</div>
+            <button class="play-btn">Mainkan</button>
+        </a>
+
+        <a href="link-memory.html" class="game-card">
+            <i class="fas fa-brain game-icon"></i>
+            <div class="game-title">Memory Matrix</div>
+            <div class="game-desc">Cocokkan pasangan kartu dengan cepat untuk melatih daya ingat otakmu.</div>
+            <button class="play-btn">Mainkan</button>
+        </a>
+
+        <a href="link-pong.html" class="game-card">
+            <i class="fas fa-table-tennis game-icon"></i>
+            <div class="game-title">Neon Pong</div>
+            <div class="game-desc">Pantulkan bola energi melewati pertahanan lawan di area tanpa gravitasi.</div>
+            <button class="play-btn">Mainkan</button>
+        </a>
+
+        <a href="link-tetris.html" class="game-card">
+            <i class="fas fa-cubes game-icon"></i>
+            <div class="game-title">Tetris Blok</div>
+            <div class="game-desc">Susun balok yang jatuh agar rapi dan struktur tidak mencapai puncak.</div>
+            <button class="play-btn">Mainkan</button>
+        </a>
+    </div>
+
+    <button id="musicToggleBtn" class="music-btn" title="Nyalakan/Matikan Musik">
+        <i class="fas fa-volume-mute" id="musicIcon"></i>
+    </button>
+
+    <audio id="bgMusic" loop>
+        <source src="assets/game-over.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="clickSound">
+        <source src="assets/click.mp3" type="audio/mpeg">
+    </audio>
+
+    <footer>
+        &copy; 2026 Portal Web Game. Dibuat dengan HTML, CSS, & Semangat Keren.
+    </footer>
+
+    <script>
+    const bgMusic = document.getElementById('bgMusic');
+    const musicToggleBtn = document.getElementById('musicToggleBtn');
+    const musicIcon = document.getElementById('musicIcon');
+    const clickSound = document.getElementById('clickSound');
+
+    let isPlaying = false;
+    if (bgMusic) bgMusic.volume = 0.4;
+
+    // 1. Kontrol Tombol Musik (Play / Mute Manual)
+    if (musicToggleBtn) {
+        musicToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Mencegah bentrok dengan klik layar utama
+            if (isPlaying) {
+                bgMusic.pause();
+                musicIcon.className = 'fas fa-volume-mute';
+                isPlaying = false;
+            } else {
+                bgMusic.play().then(() => {
+                    musicIcon.className = 'fas fa-volume-up';
+                    isPlaying = true;
+                }).catch(e => console.log("Gagal memutar audio:", e));
+            }
+        });
+    }
+
+    // 2. Pemutaran awal saat layar diklik (pertama kali saja)
+    document.body.addEventListener('click', () => {
+        if (!isPlaying && bgMusic) {
+            bgMusic.play().then(() => {
+                isPlaying = true;
+                if (musicIcon) musicIcon.className = 'fas fa-volume-up';
+            }).catch(err => {
+                console.log("Autoplay dicegah browser.");
+            });
+        }
+    }, { once: true });
+
+    // 3. Efek suara klik tombol
+    document.querySelectorAll('button, .game-card').forEach(element => {
+        element.addEventListener('click', () => {
+            if (clickSound) {
+                clickSound.currentTime = 0;
+                clickSound.play().catch(e => {});
+            }
+        });
+    });
+</script>
+</body>
+</html>
